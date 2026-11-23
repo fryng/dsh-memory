@@ -37,35 +37,48 @@ Requirements: a DSH installation with a profile (default `web`), and Node **>= 2
 
 The CLI also honours `$DSH_HOME` and `~/.dsh`, and `dsh-memory status` prints what it resolved.
 
-#### A. From GitHub, no build (recommended)
+#### A. From the release tarball (recommended)
+
+The tarball is a plain npm package; no clone, no build, no network beyond the download.
 
 ```bash
-# 1. put the package where DSH resolves profile bundles from
-npm install --prefix "<DSH_HOME>/profiles/web" --no-save github:fryng/dsh-memory
+# 1. download https://github.com/fryng/dsh-memory/releases/download/v0.1.0/dsh-memory-0.1.0.tgz
+#    (checksum in the release notes)
 
-# 2. register the bundle in that profile's package.json
+# 2. put it where DSH resolves profile bundles from
+npm install --prefix "<DSH_HOME>/profiles/web" --no-save ./dsh-memory-0.1.0.tgz
+
+# 3. register the bundle in that profile's package.json
 node "<DSH_HOME>/profiles/web/node_modules/dsh-memory/scripts/cli.mjs" install \
   --profile web --dsh-home "<DSH_HOME>"
 ```
 
-#### B. From a clone (developer loop)
+#### B. Straight from GitHub
+
+Requires `git` and working access to `github.com:443` (npm shells out to `git ls-remote`):
+
+```bash
+npm install --prefix "<DSH_HOME>/profiles/web" --no-save github:fryng/dsh-memory
+node "<DSH_HOME>/profiles/web/node_modules/dsh-memory/scripts/cli.mjs" install \
+  --profile web --dsh-home "<DSH_HOME>"
+```
+
+#### C. From a checkout (developer loop)
 
 ```bash
 git clone https://github.com/fryng/dsh-memory.git
 cd dsh-memory
-npm install          # esbuild only
+npm install          # esbuild, react, react-dom — dev only
 npm run build        # src/ -> lib/index.js + lib/client.js
 node scripts/cli.mjs install --profile web     # links this checkout into the profile
 ```
 
 `install` creates a directory junction/symlink at `<profile>/node_modules/dsh-memory` and appends `dsh-memory` to `dsh.profile.bundles`. It is idempotent, never deletes, and never touches your own `cordis.patch.yml`; the profile's `package.json` is backed up before every edit. Rebuild (`npm run build`) and restart DSH to pick up source changes.
 
-#### C. From the release tarball
+`--copy` copies the package instead of linking, for profiles that must not point at a working tree:
 
 ```bash
-npm pack            # or download dsh-memory-<version>.tgz from Releases
-tar -xzf dsh-memory-0.1.0.tgz
-node package/scripts/cli.mjs install --copy --profile web --dsh-home "<DSH_HOME>"
+node scripts/cli.mjs install --copy --profile web --dsh-home "<DSH_HOME>"
 ```
 
 ### Verify
@@ -250,19 +263,20 @@ score = bm25(query) × 遗忘衰减 × 重要性权重 + 使用强化
 三条路，任选其一：
 
 ```bash
-# A. 从 GitHub 装，不构建
+# A. Release 压缩包（推荐：不用 clone、不用构建，只要能下载）
+#    下载 https://github.com/fryng/dsh-memory/releases/download/v0.1.0/dsh-memory-0.1.0.tgz
+#    校验值写在 Release 说明里
+npm install --prefix "<DSH_HOME>/profiles/web" --no-save ./dsh-memory-0.1.0.tgz
+node "<DSH_HOME>/profiles/web/node_modules/dsh-memory/scripts/cli.mjs" install --profile web
+
+# B. 直接从 GitHub 装（需要能连 github.com:443，npm 会调 git ls-remote）
 npm install --prefix "<DSH_HOME>/profiles/web" --no-save github:fryng/dsh-memory
 node "<DSH_HOME>/profiles/web/node_modules/dsh-memory/scripts/cli.mjs" install --profile web
 
-# B. 克隆后构建（改源码用这条）
+# C. 克隆后构建（改源码用这条）
 git clone https://github.com/fryng/dsh-memory.git && cd dsh-memory
 npm install && npm run build
 node scripts/cli.mjs install --profile web
-
-# C. Release 压缩包
-npm pack        # 或从 Releases 下载 dsh-memory-<version>.tgz
-tar -xzf dsh-memory-0.1.0.tgz
-node package/scripts/cli.mjs install --copy --profile web
 ```
 
 `cli.mjs install` 是幂等的、只增不删：建 `<profile>/node_modules/dsh-memory` 目录联接（`--copy` 则实体复制），并把 `dsh-memory` 追加到 `<profile>/package.json` 的 `dsh.profile.bundles`（改前备份 `package.json.bak-dsh-memory-<时间戳>`）。它**不动**你自己的 `cordis.patch.yml`。
