@@ -17,8 +17,22 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const bundlePath = path.join(here, '..', 'lib', 'client.js');
 const require_ = createRequire(import.meta.url);
 
-const react = require_('react');
-const server = require_('react-dom/server');
+// react and react-dom are devDependencies, not runtime ones: the shell provides
+// them at runtime. Someone who installs the package and runs the tests straight
+// out of node_modules may not have them, so degrade to the source-level checks
+// instead of failing the whole file.
+let react = null;
+let server = null;
+try {
+  react = require_('react');
+  server = require_('react-dom/server');
+} catch {
+  /* render tests are skipped below */
+}
+const canRender = react !== null && server !== null;
+const renderOnly = canRender
+  ? {}
+  : { skip: 'react / react-dom are not installed here — run npm install to enable the render tests' };
 
 /** The icon set the panel imports; a plain span is enough to render. */
 const ICONS = [
@@ -63,7 +77,7 @@ function loadBundle() {
   return captured.factory(factoryRequire);
 }
 
-test('the built bundle registers a factory under the package id', () => {
+test('the built bundle registers a factory under the package id', renderOnly, () => {
   const exports_ = loadBundle();
   assert.equal(typeof exports_.apply, 'function');
   assert.deepEqual(exports_.inject, ['slots', 'locale']);
@@ -115,7 +129,7 @@ function fakeCtx() {
   return { ctx, registered, t };
 }
 
-test('apply registers dictionaries and one settings.section entry', () => {
+test('apply registers dictionaries and one settings.section entry', renderOnly, () => {
   const { ctx, registered } = fakeCtx();
   loadBundle().apply(ctx);
   assert.equal(registered.dicts.length, 1);
@@ -131,7 +145,7 @@ test('apply registers dictionaries and one settings.section entry', () => {
   assert.equal(typeof registered.entry.options.label, 'function');
 });
 
-test('the injected hooks expose getSnapshot/subscribe and render a snapshot', () => {
+test('the injected hooks expose getSnapshot/subscribe and render a snapshot', renderOnly, () => {
   const { ctx, registered } = fakeCtx();
   loadBundle().apply(ctx);
   const face = registered.entry.options.inject();
@@ -173,7 +187,7 @@ function renderPanel({ workspaces, items, stats, filter = {}, phase = 'ready', m
   );
 }
 
-test('the panel renders workspaces, cards, level chips and the retention bar', () => {
+test('the panel renders workspaces, cards, level chips and the retention bar', renderOnly, () => {
   const html = renderPanel({
     workspaces: [
       { id: 'a', title: 'DeepSeek-Harness', path: 'E:\\DevTools\\DeepSeek-Harness', exists: true, active: 2, archived: 1, total: 3, levels: { rule: 1, fact: 1 }, projects: [] },
@@ -201,7 +215,7 @@ test('the panel renders workspaces, cards, level chips and the retention bar', (
   assert.ok(fills[0] > fills[1], `expected rule memory ${fills[0]}% to outlast fact memory ${fills[1]}%`);
 });
 
-test('the empty states are distinct: no database vs no match', () => {
+test('the empty states are distinct: no database vs no match', renderOnly, () => {
   const missing = renderPanel({
     workspaces: [{ id: 'b', title: 'fresh', path: 'E:\\tmp\\fresh', exists: false, active: 0, archived: 0, total: 0, levels: {}, projects: [] }],
     items: [],
@@ -218,7 +232,7 @@ test('the empty states are distinct: no database vs no match', () => {
   assert.match(noMatch, /t:noMatch/);
 });
 
-test('no workspaces renders the guidance state, not a blank page', () => {
+test('no workspaces renders the guidance state, not a blank page', renderOnly, () => {
   const html = renderPanel({ workspaces: [], items: [], stats: { active: 0, archived: 0, total: 0, levels: {}, projects: [] }, phase: 'ready' });
   assert.match(html, /t:noWorkspace/);
 });

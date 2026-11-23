@@ -44,4 +44,7 @@ packaged as a standalone, installable profile bundle.
 
 - Requires DSH with profile bundles support. `node:sqlite` needs Node >= 22.5
   for the CLI, tests and demo; DSH ships its own runtime for the plugin.
+- `react` / `react-dom` are devDependencies only (the shell supplies them at
+  runtime). Without them the client tests skip the render cases and keep the
+  two source-level assertions instead of failing the file.
 - Archive never deletes: status changes only, no `DELETE` statements.
