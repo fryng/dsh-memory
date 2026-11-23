@@ -38,6 +38,21 @@ you want incremental rebuilds.
   profile when the change touches injection, routes or the panel).
 - Screenshots for UI changes, both light and dark theme.
 
+## Publishing when `github.com:443` is blocked
+
+`git push` speaks to `github.com:443`, which some networks reset while
+`api.github.com` keeps working. `scripts/push-api.mjs` publishes the current
+commit through the Git Data API instead:
+
+```bash
+node scripts/push-api.mjs --dry-run      # what would be sent
+node scripts/push-api.mjs                # append a commit to origin/main
+node scripts/push-api.mjs --tag v0.1.0   # ...and move the tag
+```
+
+It reads credentials from `GITHUB_TOKEN` or the git credential store, never
+force-pushes a branch, and needs nothing beyond Node's built-in `fetch`.
+
 ## Reporting bugs
 
 Please include: DSH version, OS, Node version (`node -v`), the output of
