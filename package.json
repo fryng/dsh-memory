@@ -1,0 +1,77 @@
+{
+  "name": "dsh-memory",
+  "version": "0.1.0",
+  "description": "Per-workspace long-term memory plugin for DSH (DeepSeek Harness) — one SQLite file per workspace, FTS5 trigram retrieval for Chinese, cache-safe injection, and a deterministic writeback trigger so memory actually gets written.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-memory": "./scripts/cli.mjs"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/index.js.map",
+    "lib/client.js",
+    "lib/client.js.map",
+    "cordis.patch.yml",
+    "build.mjs",
+    "scripts/cli.mjs",
+    "scripts/mount.mjs",
+    "scripts/prune-empty.mjs",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "demo": "node scripts/demo.mjs",
+    "mount": "node scripts/cli.mjs install",
+    "status": "node scripts/cli.mjs status",
+    "prune": "node scripts/prune-empty.mjs",
+    "pack": "npm pack"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "deepseek",
+    "memory",
+    "long-term-memory",
+    "cordis",
+    "plugin",
+    "sqlite",
+    "fts5",
+    "trigram",
+    "chinese",
+    "agent"
+  ],
+  "author": "fryng",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fryng/dsh-memory.git"
+  },
+  "homepage": "https://github.com/fryng/dsh-memory#readme",
+  "bugs": {
+    "url": "https://github.com/fryng/dsh-memory/issues"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

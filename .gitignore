@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build/pack output
+*.tgz
+*.zip
+
+# memory databases and demo workspaces — never commit real memory
+.dsh-memory/
+.demo-memory-workspace/
+*.db
+*.db-wal
+*.db-shm
+
+# profile backups written by scripts/cli.mjs
+*.bak-dsh-memory*
+package.json.bak-*
+
+# local scratch
+.dsh/
+.DS_Store
+Thumbs.db
+*.log

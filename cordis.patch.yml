@@ -1,0 +1,45 @@
+# Plugin-owned default layer for dsh-memory.
+#
+# Mounted by adding the package name to the profile's `dsh.profile.bundles`
+# (see `node scripts/mount.mjs`). Override any value from the profile's own
+# `cordis.patch.yml` (the user layer).
+- insert:
+    - id: dsh-memory
+      name: 'dsh-memory'
+      config:
+        enabled: true
+        # One SQLite database per workspace, at <workspace>/<dataDir>/memory.db.
+        # Per-workspace is the point: two projects never share a memory pool, and
+        # deleting a workspace deletes its memory with it.
+        dataDir: '.dsh-memory'
+        promptLang: 'zh'
+        systemGuide: true
+        # Empty: the tools keep the documented names (memory_remember, …).
+        # Set e.g. 'memory_' or another prefix only if something else already
+        # registered the same names — DSH rejects duplicate tool names and that
+        # error aborts the whole plugin tree.
+        toolPrefix: ''
+        hitTopK: 3
+        recallMinRelevance: 0.15
+        snapshotBudgetChars: 2400
+        recallBudgetChars: 900
+        writeback:
+          # off | trigger | always
+          #
+          # 'trigger' is the channel that makes memory actually fill up: a user
+          # message that says 记住 / 以后 / 我喜欢 / remember / always … (or every
+          # N user turns) gets one INDEPENDENT extraction call whose only evidence
+          # is that user message. Pure "the agent should call the tool" designs
+          # stay empty in practice — measured, not assumed.
+          mode: 'trigger'
+          # Interval fallback. Trigger words alone rarely fire: real user
+          # messages state what they want instead of saying 记住 / 以后, so a
+          # dense session used to log zero extractions with 10. Four is the
+          # measured compromise (memory fills, chatter stays out).
+          everyNUserTurns: 4
+          # Empty: inherit the live agent's model (the trigger runs inside a turn,
+          # so a route is always available). Set 'provider/model' to pin it.
+          model: ''
+          minChars: 8
+          maxPerTurn: 3
+          cooldownSeconds: 30
